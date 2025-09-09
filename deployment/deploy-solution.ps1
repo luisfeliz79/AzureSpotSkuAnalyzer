@@ -207,8 +207,7 @@ try {
     az functionapp config set --always-on true --name $functionName --resource-group $resourceGroupName
     
     Write-host "Configuring Azure Functions VNET ROUTE ALL..." -ForegroundColor Green
-    az functionapp config set --vnet-route-all-enabled true --name $functionName --resource-group $resourceGroupName 
-    
+    az resource update --resource-group $resourceGroupName --name $functionName  --resource-type "Microsoft.Web/sites" --set properties.vnetRouteAllEnabled=true --api-version "2022-03-01"
     
     Write-host "Configuring Azure Functions Host Storage with Managed Identity..." -ForegroundColor Green
 
@@ -241,7 +240,7 @@ try {
     $tableParams = [PSCustomObject]@{
         properties = @{
             schema = @{
-                name = $TableName
+                name = "$($TableName)_CL"
                 columns = @(
                     @{ name = "TimeGenerated"; type = "datetime"; description = "The time at which the data was ingested." },
                     @{ name = "Sku"; type = "string"; description = "The SPOT SKU" },
@@ -255,7 +254,7 @@ try {
         }
     } | ConvertTo-Json -Depth 10
 
-    Invoke-AzRestMethod -Path "$WORKSPACE_RESOURCE_ID/tables/$($TableName)?api-version=2021-12-01-preview" -Method PUT -payload $tableParams
+    Invoke-AzRestMethod -Path "$WORKSPACE_RESOURCE_ID/tables/$($TableName)_CL?api-version=2021-12-01-preview" -Method PUT -payload $tableParams
 
 
 
