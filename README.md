@@ -35,20 +35,41 @@ This script deploys the following required resources:
 - Function Script code
 
 ## To deploy the solution
-1. Clone the repository
-2. Open a terminal and navigate to the cloned directory
+1. Open a PowerShell terminal or [Azure Cloud Shell](https://shell.azure.com).  If using Cloud Shell, you can select PowerShell or Bash (then run pwsh)
+2. Clone the repository
+    ```bash
+    git clone https://github.com/luisfeliz79/AzureSpotSkuAnalyzer.git
+    ```
+2. Navigate to the cloned directory, deployment directory.
+   ```bash
+   cd ./AzureSpotSkuAnalyzer/deployment
+   ```
 3. Update `$subscription`,`$resourceGroupName`,`$skus` and `$regions` as needed in [deploy-solution.ps1](./deployment/deploy-solution.ps1)
 4. Run the deployment script using the following command:
-   ```bash
-   cd deployment
+   ```bash   
+   # bash
    pwsh ./deploy-solution.ps1
+   
+   # powershell
+   ./deploy-solution.ps1
    ```
 
 ## To update the SKUs and regions
 1. Open the [update-skus-and-regions.ps1](./deployment/update-skus-and-regions.ps1) script
-2. Update `$subscription`,`$resourceGroupName`,`$skus` and `$regions` as needed
+2. Update `$subscription`,`$resourceGroupName`, `$functionName`, `$skus` and `$regions` as needed
 3. Run the script using the following command:
    ```bash
-   cd deployment
+   cd ./AzureSpotSkuAnalyzer/deployment
+
+   # bash
    pwsh ./update-skus-and-regions.ps1
+
+   # powershell
+   ./update-skus-and-regions.ps1
    ```
+
+## Clean up
+To delete the resources created by this deployment, you can use the following command:
+```bash
+az group delete --name "<resource-group-name>" --yes --no-wait
+```

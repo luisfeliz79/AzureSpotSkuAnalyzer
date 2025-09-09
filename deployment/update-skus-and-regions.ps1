@@ -25,7 +25,7 @@ $ListOfRegions = @(
 $subscription           = "<subscription-name>"
 $resourceGroupName      = "<resource-group>"
 $resourcePrefix         = "spotscore"
-$functionName           = "$($resourcePrefix)-func"
+$functionName           = "<function-app-name>"
 
 # Calculated Variables
 $Spot_SKUs = $ListOFSkus -join ","
@@ -33,7 +33,7 @@ $Spot_Regions = $ListOfRegions -join ","
 
 # Update the functions app
 az account set --subscription $subscription
-az functionapp config.appsettings set --name $functionName --resource-group $resourceGroupName --settings "SPOT_SKUS=$Spot_SKUs"
-az functionapp config.appsettings set --name $functionName --resource-group $resourceGroupName --settings "SPOT_REGIONS=$Spot_Regions"
+az functionapp config appsettings set --name $functionName --resource-group $resourceGroupName --settings "SPOT_SKUS=$Spot_SKUs"
+az functionapp config appsettings set --name $functionName --resource-group $resourceGroupName --settings "SPOT_REGIONS=$Spot_Regions"
 
 
