@@ -219,14 +219,25 @@ try {
     # Set Function App settings for host storage
     az functionapp config appsettings set --name $functionName --resource-group $resourceGroupName --settings "AzureWebJobsStorage__blobServiceUri=https://$($STORAGE_ACCOUNT_NAME).blob.core.windows.net/"
     az functionapp config appsettings set --name $functionName --resource-group $resourceGroupName --settings "SCM_DO_BUILD_DURING_DEPLOYMENT=false"
-    
-    Write-host "Azure Functions Clean up unneeded settings..." -ForegroundColor Green
-    # Clean up unnecessary settings
-    az functionapp config appsettings delete --name $functionName --resource-group $resourceGroupName --setting-names "AzureWebJobsStorage","WEBSITES_ENABLE_APP_SERVICE_STORAGE"
-    
+    az functionapp config appsettings set --name $functionName --resource-group $resourceGroupName --settings "AzureWebJobsStorage__credential=managedidentity"
+
     Write-host "Azure Functions Configuring CORS..." -ForegroundColor Green
     # Configure CORS
     az functionapp cors add --name $functionName --resource-group $resourceGroupName --allowed-origins "https://portal.azure.com"
+
+
+    Write-host "Azure Functions Clean up unneeded settings..." -ForegroundColor Green
+    # Clean up unnecessary settings
+    az functionapp config appsettings delete --name $functionName --resource-group $resourceGroupName --setting-names "AzureWebJobsStorage"
+    az functionapp config appsettings delete --name $functionName --resource-group $resourceGroupName --setting-names "WEBSITES_ENABLE_APP_SERVICE_STORAGE"
+    
+    # Stop and start the function app to ensure settings are applied
+    Write-host "Stopping the function app to ensure settings are applied..." -ForegroundColor Green
+    az functionapp stop --name $functionName --resource-group $resourceGroupName
+    Write-host "Starting the function app to ensure settings are applied..." -ForegroundColor Green
+    az functionapp start --name $functionName --resource-group $resourceGroupName
+
+
 
     Write-host "Azure Log Ananalytics Workspace Custom table..." -ForegroundColor Green
     $WORKSPACE_RESOURCE_ID=az monitor log-analytics workspace show --name $LOG_ANALYTICS_NAME --resource-group $resourceGroupName --query id --output tsv
@@ -254,8 +265,8 @@ try {
         }
     } | ConvertTo-Json -Depth 10
 
-    Invoke-AzRestMethod -Path "$WORKSPACE_RESOURCE_ID/tables/$($TableName)_CL?api-version=2021-12-01-preview" -Method PUT -payload $tableParams
-
+    $tableParams |  out-file "./tmp-table-params.json"
+    az rest --method PUT --url "https://management.azure.com$WORKSPACE_RESOURCE_ID/tables/$($TableName)_CL?api-version=2021-12-01-preview" --body "@./tmp-table-params.json"
 
 
     Write-host "Azure Monitor Data Collection Rule and Data Collection Endpoint..." -ForegroundColor Green
@@ -266,6 +277,8 @@ try {
         --location $location `
         --public-network-access enabled
 
+    Write-host "Waiting 15 seconds..." -ForegroundColor Green
+    Start-Sleep -Seconds 15
     $DCE_ID = $(az monitor data-collection endpoint show --resource-group $resourceGroupName --name $DCE_NAME --query id --output tsv)
 
     # Create the Custom Table at this point so it is available when the function runs
@@ -344,6 +357,10 @@ try {
     # Create a zip file of the function app
     Compress-Archive -Path ./azure-functions/* -DestinationPath ./azure-functions.zip -Force 
 
+
+    Write-host "Waiting 45 seconds to ensure the function app is ready for deployment..." -ForegroundColor Green
+    Start-Sleep -Seconds 45
+    Write-host "Deploying code ..." -ForegroundColor Green
     az functionapp deployment source config-zip `
         --name $functionName `
         --resource-group $resourceGroupName `
@@ -360,7 +377,7 @@ try {
 
     Write-host "Deployment completed!" -ForegroundColor Green
 
-    Write-host "NOTE: Always on is required for proper function of this solution" -ForegroundColor Yellow
+    Write-host "NOTE: Always ON is required for proper function of this solution" -ForegroundColor Yellow
     Write-host "If telemetry stops, please check the function app settings and ensure that the Always On setting is enabled." -ForegroundColor Yellow
 }
 

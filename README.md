@@ -55,6 +55,10 @@ This script deploys the following required resources:
    ```
 
 ## To update the SKUs and regions
+### Limits
+- The maximum number of recommended SKUs is 15 to avoid throttling
+- The maximum number of regions that can be analyzed is 5
+### Steps
 1. Open the [update-skus-and-regions.ps1](./deployment/update-skus-and-regions.ps1) script
 2. Update `$subscription`,`$resourceGroupName`, `$functionName`, `$skus` and `$regions` as needed
 3. Run the script using the following command:
