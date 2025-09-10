@@ -371,11 +371,13 @@ try {
     Compress-Archive -Path ./azure-functions/functions-source/* -DestinationPath ./functions-source.zip -Force 
 
 
-    Write-host "Waiting 300 seconds to ensure the function app is ready for deployment..." -ForegroundColor Green
     az functionapp restart --name $functionName --resource-group $resourceGroupName
-
-    Start-Sleep -Seconds 300
+    Write-host "Waiting 30 seconds for the function app to be ready..." -ForegroundColor Green
+    Start-Sleep -Seconds 30
     Write-host "Deploying code ..." -ForegroundColor Green
+    Write-host "You may see timeout issues, however the deployment should complete successfully" -ForegroundColor Yellow
+    Write-host "You may retry by running the following command if needed:" -ForegroundColor Yellow
+    Write-host "./update-function-app-code.ps1 -subscription '$subscription' -resourceGroupName '$resourceGroupName' -functionName '$functionName'" -ForegroundColor Yellow
     az functionapp deployment source config-zip `
         --name $functionName `
         --resource-group $resourceGroupName `
