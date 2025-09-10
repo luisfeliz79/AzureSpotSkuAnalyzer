@@ -33,6 +33,7 @@ This script deploys the following required resources:
 - RBAC settings for the Storage account, and Data Collection Rule
 - Azure Workbook
 - Function Script code
+- For internal employees: This solution is SFI compliant
 
 ## To deploy the solution
 1. Open a PowerShell terminal or [Azure Cloud Shell](https://shell.azure.com).  If using Cloud Shell, you can select PowerShell or Bash (then run pwsh)

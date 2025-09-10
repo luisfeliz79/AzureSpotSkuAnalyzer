@@ -232,7 +232,8 @@ try {
     Write-host "Azure Functions Configuring CORS..." -ForegroundColor Green
     # Configure CORS
     az functionapp cors add --name $functionName --resource-group $resourceGroupName --allowed-origins "https://portal.azure.com"
-
+    az functionapp cors add --name $functionName --resource-group $resourceGroupName --allowed-origins "https://preview.portal.azure.com"
+    az functionapp cors add --name $functionName --resource-group $resourceGroupName --allowed-origins "https://ms.portal.azure.com"
 
     Write-host "Azure Functions Clean up unneeded settings..." -ForegroundColor Green
     # Clean up unnecessary settings
