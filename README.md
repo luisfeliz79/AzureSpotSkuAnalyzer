@@ -1,3 +1,4 @@
+#! /usr/bin/env pwsh
 # Spot Placement Score analysis tool
 ### By Luis Feliz
 
@@ -55,6 +56,12 @@ This script deploys the following required resources:
       -subscription "<your-subscription-id>" `
       -resourceGroupName "<your-resource-group-name>" `
       -location "<azure-region>"
+
+   # In Bash, prefix it with pwsh
+   pwsh ./deploy-azure-functions-solution.ps1 `
+      -subscription "<your-subscription-id>" `
+      -resourceGroupName "<your-resource-group-name>" `
+      -location "<azure-region>"
    ```
 
 ## To update the SKUs and regions
@@ -79,6 +86,15 @@ This script deploys the following required resources:
    -functionName "<your-function-app-name>" `
    -Spot_Regions "eastus2,centralus" `
    -Spot_SKUs "Standard_D48as_v4,Standard_D48ds_v4"
+
+   # In Bash, prefix it with pwsh
+   pwsh ./update-function-app-skus-and-regions.ps1 `
+   -subscription "<your-subscription-id>" `
+   -resourceGroupName "<your-resource-group-name>" `
+   -functionName "<your-function-app-name>" `
+   -Spot_Regions "eastus2,centralus" `
+   -Spot_SKUs "Standard_D48as_v4,Standard_D48ds_v4"
+   
    ```
 
 ## Clean up
