@@ -1,4 +1,3 @@
-#! /usr/bin/env pwsh
 # Spot Placement Score analysis tool
 ### By Luis Feliz
 
