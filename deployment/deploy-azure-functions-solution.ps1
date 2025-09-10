@@ -88,6 +88,11 @@ try {
         --resource-group $resourceGroupName `
         --address-prefix $addressPrefix
 
+    Write-host "Creating a Network Security Group..." -ForegroundColor Green
+    az network nsg create --name "$resourcePrefix-nsg" `
+        --resource-group $resourceGroupName `
+        --location $location
+
     Write-Host "Creating subnets..." -ForegroundColor Green
     # Add subnets
     $subnet1Name = "functions"
@@ -95,14 +100,16 @@ try {
     az network vnet subnet create --name $subnet1Name `
         --resource-group $resourceGroupName `
         --vnet-name $virtualNetworkName `
-        --address-prefix $subnet1Prefix
+        --address-prefix $subnet1Prefix `
+        --network-security-group "$resourcePrefix-nsg"
 
     $subnet2Name = "endpoint"
     $subnet2Prefix = "$($address_prefix_octects).1.0/24"
     az network vnet subnet create --name $subnet2Name `
         --resource-group $resourceGroupName `
         --vnet-name $virtualNetworkName `
-        --address-prefix $subnet2Prefix
+        --address-prefix $subnet2Prefix `
+        --network-security-group "$resourcePrefix-nsg"
 
     # Create Storage account using Azure CLI
     $Storage_SKU="Standard_LRS"
@@ -238,6 +245,15 @@ try {
     Write-host "Starting the function app to ensure settings are applied..." -ForegroundColor Green
     az functionapp start --name $functionName --resource-group $resourceGroupName
 
+    Write-host "Configurating Diagnostic settings..." -ForegroundColor Green
+    # Configure Diagnostic settings for the function app
+    $log_profile=[pscustomobject]@{categoryGroup="AllLogs";enabled="true"} 
+    az monitor diagnostic-settings create --name "diagnostics" `
+        --resource-group $resourceGroupName `
+        --resource-type "Microsoft.Web/sites" `
+        --resource $functionName `
+        --workspace $LOG_ANALYTICS_NAME `
+        --logs "[$($log_profile | ConvertTo-Json -Compress)]"
 
 
     Write-host "Azure Log Ananalytics Workspace Custom table..." -ForegroundColor Green
@@ -397,3 +413,5 @@ try {
 catch {
     Write-Host "Error occurred during deployment: $_" -ForegroundColor Red
 }
+
+
