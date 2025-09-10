@@ -20,33 +20,28 @@
 #   PowerShell
 # If using Azure Shell, select Linux Bash, and then enter "pwsh ./deploy-solution.ps1" 
 
-# Deployment configuration
-$subscription           = "<subscription-name>"
-$resourceGroupName      = "<resource-group>"
+param(
+    [string]$subscription,
+    [string]$resourceGroupName,
+    [string]$location,
+    [string]$resourcePrefix,
+    [string]$functionName
+)
 
-$resourcePrefix         = "spotscore"
-$location               = "eastus2"
-
+# This reads configuration from a .env file if parameters are not provided
+. ./read-config.ps1
 
 # Initial configuration
 # Define the SKU list here
 $ListOFSkus = @(
     "Standard_D48as_v4",
-    "Standard_D48ds_v4",    
-    "Standard_D48ads_v5",    
-    "Standard_E48as_v4",
-    "Standard_E48ds_v4",
-    "Standard_E48ads_v5",
-    "Standard_E48as_v5",
-    "Standard_D48as_v6",
-    "Standard_D96as_v5"
+    "Standard_D48ds_v4"
 )
 
 # Define the region list here
 $ListOfRegions = @(
     "eastus2",
-    "centralus",
-    "eastus"
+    "centralus"
 )
 
 #### Calculated variables
@@ -58,7 +53,6 @@ if (Test-Path "./tmp-spot-install-random-value.txt") {
 }
 Write-host "Using random value: $RANDOM" -ForegroundColor Cyan
 $virtualNetworkName   = "$resourcePrefix-vnet"
-$functionName         = "$($resourcePrefix)-$($RANDOM)-func"
 $planName             = "$($resourcePrefix)-plan"
 $STORAGE_ACCOUNT_NAME = "$($resourcePrefix)$($RANDOM)sa"
 $LOG_ANALYTICS_NAME   = "$($resourcePrefix)$($RANDOM)law"
@@ -67,6 +61,13 @@ $DCE_NAME             = "$($resourcePrefix)-dce"
 $DCR_NAME             = "$($resourcePrefix)-dcr"
 $address_prefix_octects = "10.0"
 $TableName            = "spot_placement_scores" # Do not modify
+
+if ($functionName -eq $null -or $functionName -eq "") {
+    $functionName         = "$($resourcePrefix)-$($RANDOM)-func"
+    "FUNCTIONNAME=$functionName" | out-file "./.env" -Append 
+}
+
+
 
 try {
 

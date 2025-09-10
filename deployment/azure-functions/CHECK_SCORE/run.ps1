@@ -31,7 +31,7 @@ function SendLogToWorkspace ($logObject,$bearerToken) {
             return
         }
 
-        Write-Warning "Sending Log data ... "
+        #Write-Warning "Sending Log data ... "
         
 
     
@@ -86,7 +86,7 @@ function SendLogToWorkspace ($logObject,$bearerToken) {
     
             $uploadResponse = Invoke-WebRequest -Uri $uri -Method "Post" -Body $body -Headers $headers   -UseBasicParsing
     
-            Write-Warning "$($uploadResponse.StatusCode) SUCCESS"
+            Write-Warning "Send Log data: $($uploadResponse.StatusCode) SUCCESS"
         }
 
     } catch {
@@ -108,10 +108,10 @@ function GetSpotPlacementScores([string[]]$SKUs,[string[]]$Regions,$subscription
         $RequestRegion=$Regions[0]
     }
     
-    if ($SKUs.Count -gt $MAX_API_SKU) {
-        Write-Warning "Received $($SKUs.Count) total"
-        Write-Verbose "The API supports up to $MAX_API_SKU SKUs per request. Splitting the requests."    
-    }
+    # if ($SKUs.Count -gt $MAX_API_SKU) {
+    #     Write-Warning "Received $($SKUs.Count) total"
+    #     Write-Verbose "The API supports up to $MAX_API_SKU SKUs per request. Splitting the requests."    
+    # }
 
     $ProcessedSkus=0
 
@@ -123,10 +123,7 @@ function GetSpotPlacementScores([string[]]$SKUs,[string[]]$Regions,$subscription
         $CurrentSkus | ForEach-Object {
             $resourceSkus+= @{sku = $_}
         }
-        Write-Warning "Currently checking SKUS: $($CurrentSkus -join ', ')"
-        Write-Warning "Using Regions: $($regions -join ', ')"
-        Write-Warning "Request Region: $RequestRegion"
-        Write-Warning "Subscription: $subscription"
+        Write-Warning "Currently checking SKUS: $($CurrentSkus -join ', '), Using Regions: $($regions -join ', '), Request Region: $RequestRegion and Subscription: $subscription"
 
         try {
             $response = Invoke-AzSpotPlacementScore `
@@ -176,8 +173,8 @@ $MONITOR_STREAM_NAME       = "Custom-spot_placement_scores_CL" #name of the stre
 
 $MONITOR_ENDPOINT_URI      = $ENV:MONITOR_ENDPOINT_URI
 $MONITOR_DCR_IMMUTABLE_ID  = $ENV:MONITOR_DCR_IMMUTABLE_ID
-$SKUs                      = $ENV:SPOT_SKUS -replace '' -split ","
-$REGIONS                   = $ENV:SPOT_REGIONS -replace '' -split ","
+$SKUs                      = $ENV:SPOT_SKUS -replace ' ' -split ","
+$REGIONS                   = $ENV:SPOT_REGIONS -replace ' ' -split ","
 $subscription              = $ENV:SUBSCRIPTION_ID
 
 if (-not $subscription) {
@@ -185,10 +182,10 @@ if (-not $subscription) {
 }
 
 
-Write-host "SKUS:"
-$SKUs
-Write-host "REGIONS:"
-$regions
+#Write-host "SKUS:"
+#$SKUs
+#Write-host "REGIONS:"
+#$regions
 
 # For manual run, disable the environment variable checks and uncomment the lines below
 # $SKUs = @("Standard_D48as_v5","Standard_D48as_v6","Standard_D48as_v4","Standard_D48ads_v5")
@@ -202,22 +199,29 @@ $StartTime = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
 
 $PlacementScores=GetSpotPlacementScores -SKUs $SKUs -Regions $regions -subscription $subscription
 
-Write-Warning "Received $($PlacementScores.Count) placement scores."
 
 if ($PlacementScores) {
+
+    Write-Warning "Request Result: Received $($PlacementScores.Count) placement scores."
+
 
     $PlacementScores | ForEach-Object {
         $_ | Add-Member -MemberType NoteProperty -Name "TimeGenerated" -Value $StartTime -Force
     }
 
-    # Get the bearer token for authentication
-    $bearerToken = (Get-AzAccessToken -ResourceUrl "https://monitor.azure.com").Token
+    try {
+        # Get the bearer token for authentication
+        $bearerToken = (Get-AzAccessToken -ResourceUrl "https://monitor.azure.com").Token
 
-    # Send the routes to the Log Analytics workspace
-    SendLogToWorkspace -logObject $PlacementScores -bearerToken $bearerToken
+        # Send the routes to the Log Analytics workspace
+        SendLogToWorkspace -logObject $PlacementScores -bearerToken $bearerToken
+
+    } catch {
+        Write-Error "Failed to send placement scores to Log Analytics: $_"
+    }
 
 } else {
-    Write-Error "Failed to retrieve placement scores."
+    Write-Error "Request Result: No placement scores received."
 }
 
 

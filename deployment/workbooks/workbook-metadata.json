@@ -170,6 +170,14 @@
             "linkLabel": "Eviction and Price Data",
             "subTarget": "eviction_and_price",
             "style": "link"
+          },
+          {
+            "id": "1438c8f5-3d95-4232-b581-973808578c5b",
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Function App Logs",
+            "subTarget": "function_app_logs",
+            "style": "link"
           }
         ]
       },
@@ -664,6 +672,51 @@
         "value": "eviction_and_price"
       },
       "name": "eviction_and_price_group"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "If using Azure Functions, logs from the last 4 hours will show below"
+      },
+      "name": "text - 6"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AppTraces \r\n| project TimeGenerated, Message, _ResourceId",
+              "size": 2,
+              "showAnalytics": true,
+              "timeContext": {
+                "durationMs": 14400000
+              },
+              "showRefreshButton": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "{Workspace}"
+              ],
+              "gridSettings": {
+                "rowLimit": 2500,
+                "filter": true
+              }
+            },
+            "name": "query - 0"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "function_app_logs"
+      },
+      "name": "function_app_logs_group"
     }
   ],
   "fallbackResourceIds": [
