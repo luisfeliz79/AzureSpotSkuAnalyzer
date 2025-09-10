@@ -368,7 +368,7 @@ try {
     Write-host "Deploying Azure Function app code..." -ForegroundColor Green
     # Deploy the function code
     # Create a zip file of the function app
-    Compress-Archive -Path ./azure-functions/* -DestinationPath ./azure-functions.zip -Force 
+    Compress-Archive -Path ./azure-functions/functions-source/* -DestinationPath ./functions-source.zip -Force 
 
 
     Write-host "Waiting 300 seconds to ensure the function app is ready for deployment..." -ForegroundColor Green
@@ -379,7 +379,7 @@ try {
     az functionapp deployment source config-zip `
         --name $functionName `
         --resource-group $resourceGroupName `
-        --src ./azure-functions.zip
+        --src ./functions-source.zip
 
     #az functionapp log deployment show --name $functionName --resource-group $resourceGroupName
 

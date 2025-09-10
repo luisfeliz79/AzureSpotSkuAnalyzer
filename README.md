@@ -37,21 +37,23 @@ This script deploys the following required resources:
 ## To deploy the solution
 1. Open a PowerShell terminal or [Azure Cloud Shell](https://shell.azure.com).  If using Cloud Shell, you can select PowerShell or Bash (then run pwsh)
 2. Clone the repository
-    ```bash
+    ```powershell
     git clone https://github.com/luisfeliz79/AzureSpotSkuAnalyzer.git
     ```
-2. Navigate to the cloned directory, deployment directory.
-   ```bash
+3. Navigate to the cloned directory, deployment directory.
+   ```powershell
    cd ./AzureSpotSkuAnalyzer/deployment
    ```
-3. Update `$subscription`,`$resourceGroupName`,`$skus` and `$regions` as needed in [deploy-solution.ps1](./deployment/deploy-solution.ps1)
 4. Run the deployment script using the following command:
-   ```bash   
-   # bash
-   pwsh ./deploy-solution.ps1
-   
-   # powershell
-   ./deploy-solution.ps1
+   ```powershell   
+   # Authenticate to Azure if needed
+   az login --tenant "<your-tenant-id>"
+
+   # Deploy the Azure functions based solution
+   ./deploy-azure-functions-solution.ps1 `
+      -subscription "<your-subscription-id>" `
+      -resourceGroupName "<your-resource-group-name>" `
+      -location "<azure-region>"
    ```
 
 ## To update the SKUs and regions
@@ -59,23 +61,27 @@ This script deploys the following required resources:
 - The maximum number of recommended SKUs is 15 to avoid throttling
 - The maximum number of regions that can be analyzed is 5
 ### Steps
-1. Open the [update-skus-and-regions.ps1](./deployment/update-skus-and-regions.ps1) script
-2. Update `$subscription`,`$resourceGroupName`, `$functionName`, `$skus` and `$regions` as needed
-3. Run the script using the following command:
-   ```bash
-   cd ./AzureSpotSkuAnalyzer/deployment
-
-   az login --tenant "<your-tenant-id>"  # if needed
-
-   # bash
-   pwsh ./update-skus-and-regions.ps1
+1.  Navigate to the cloned directory, deployment directory.
+      ```powershell
+      cd ./AzureSpotSkuAnalyzer/deployment
+      ```
+2. Run the deployment script using the following command:
+   ```powershell
+   
+   # Authenticate to Azure if needed
+   az login --tenant "<your-tenant-id>"
 
    # powershell
-   ./update-skus-and-regions.ps1
+   ./update-function-app-skus-and-regions.ps1 `
+   -subscription "<your-subscription-id>" `
+   -resourceGroupName "<your-resource-group-name>" `
+   -functionName "<your-function-app-name>" `
+   -Spot_Regions "eastus2,centralus" `
+   -Spot_SKUs "Standard_D48as_v4,Standard_D48ds_v4"
    ```
 
 ## Clean up
 To delete the resources created by this deployment, you can use the following command:
 ```bash
-az group delete --name "<resource-group-name>" --yes --no-wait
+   az group delete --name "<resource-group-name>" --yes --no-wait
 ```
