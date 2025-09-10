@@ -343,6 +343,18 @@ try {
     az functionapp config appsettings set --name $functionName --resource-group $resourceGroupName --settings "MONITOR_ENDPOINT_URI=$DCE_LOG_INGESTION_URI"
     az functionapp config appsettings set --name $functionName --resource-group $resourceGroupName --settings "MONITOR_DCR_IMMUTABLE_ID=$DCR_IMMUTABLE_ID"
 
+    Write-host "Deploying Workbook..."
+    # Deploy an Azure Workbook Arm template
+    az deployment group create `
+        --resource-group $resourceGroupName `
+        --template-file ./workbooks/workbook-arm-template.json     
+
+    Write-host "RBAC: Assigning Contributor role to the Subscription..." -ForegroundColor Green
+    Write-host " - This is required to get the placement scores" -ForegroundColor Green
+    Write-host " - A custom role that includes Microsoft.Compute/locations/placementScores/generate/action could be used instead" -ForegroundColor Green
+    
+    $subscriptionId = $(az account show --query id --output tsv)
+    az role assignment create --assignee $functionPrincipalId --role "Contributor" --scope /subscriptions/$subscriptionId
 
     Write-host "Configuring SKU details as Environment Variables..." -ForegroundColor Green
 
@@ -358,22 +370,20 @@ try {
     Compress-Archive -Path ./azure-functions/* -DestinationPath ./azure-functions.zip -Force 
 
 
-    Write-host "Waiting 45 seconds to ensure the function app is ready for deployment..." -ForegroundColor Green
-    Start-Sleep -Seconds 45
+    Write-host "Waiting 300 seconds to ensure the function app is ready for deployment..." -ForegroundColor Green
+    az functionapp restart --name $functionName --resource-group $resourceGroupName
+
+    Start-Sleep -Seconds 300
     Write-host "Deploying code ..." -ForegroundColor Green
     az functionapp deployment source config-zip `
         --name $functionName `
         --resource-group $resourceGroupName `
         --src ./azure-functions.zip
 
-    az functionapp log deployment show --name $functionName --resource-group $resourceGroupName
+    #az functionapp log deployment show --name $functionName --resource-group $resourceGroupName
 
 
-    Write-host "Deploying Workbook..."
-    # Deploy an Azure Workbook Arm template
-    az deployment group create `
-        --resource-group $resourceGroupName `
-        --template-file ./workbooks/workbook-arm-template.json 
+
 
     Write-host "Deployment completed!" -ForegroundColor Green
 

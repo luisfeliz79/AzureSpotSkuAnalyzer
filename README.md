@@ -65,6 +65,8 @@ This script deploys the following required resources:
    ```bash
    cd ./AzureSpotSkuAnalyzer/deployment
 
+   az login --tenant "<your-tenant-id>"  # if needed
+
    # bash
    pwsh ./update-skus-and-regions.ps1
 
