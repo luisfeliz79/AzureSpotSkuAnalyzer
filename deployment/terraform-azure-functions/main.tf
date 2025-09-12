@@ -1,16 +1,14 @@
 locals {
 
-  subscription_id     = "e31e07c8-2d2c-4c74-9886-e6f7d80c9646"
-  resource_group_name = "spotscore5-rg"
-  location            = "centralus"
-  # subscription_id              = "<your-subscription-id>"
-  # resource_group_name          = "<your-resource-group-name>"
-  # location                     = "<azure-region>"
 
-  # spot_skus - MAX 15 recommended or risk of throttling, comma-separated
+  subscription_id              = "<your-subscription-id>"
+  resource_group_name          = "<your-resource-group-name>"
+  location                     = "<azure-region>"
+
+     # spot_skus - MAX 15 recommended or risk of throttling, comma-separated
   spot_skus    = "Standard_D48as_v4,Standard_D48ds_v4"
 
-  # spot_regions - MAX 5 hard limit, comma-separated
+     # spot_regions - MAX 5 hard limit, comma-separated
   spot_regions = "eastus2,centralus"
 
   vnet_address_space              = "10.100.0.0/16"
