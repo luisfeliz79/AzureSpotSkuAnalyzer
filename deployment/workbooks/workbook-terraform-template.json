@@ -25,7 +25,7 @@
             },
             "queryType": 1,
             "resourceType": "microsoft.resources/tenants",
-            "value": "/subscriptions/fc4f8971-77b0-47e6-a975-e183b16794cb/resourceGroups/spotscore/providers/Microsoft.OperationalInsights/workspaces/spotscored5balaw"
+            "value": "${TFWorkspaceId}"
           },
           {
             "id": "66ec1211-6143-4f47-be12-753fb1807ef7",

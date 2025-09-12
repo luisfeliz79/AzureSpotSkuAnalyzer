@@ -385,7 +385,7 @@ try {
     Write-host "Deploying Azure Function app code..." -ForegroundColor Green
     # Deploy the function code
     # Create a zip file of the function app
-    Compress-Archive -Path ./azure-functions/functions-source/* -DestinationPath ./functions-source.zip -Force 
+    Compress-Archive -Path ../azure-functions/functions-source/* -DestinationPath ./functions-source.zip -Force 
 
 
     az functionapp restart --name $functionName --resource-group $resourceGroupName
