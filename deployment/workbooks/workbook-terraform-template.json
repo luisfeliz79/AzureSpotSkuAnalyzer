@@ -256,6 +256,8 @@
                 }
               },
               "chartSettings": {
+                "group": "Sku",
+                "createOtherGroup": 12,
                 "showLegend": true,
                 "ySettings": {
                   "numberFormatSettings": {
@@ -352,7 +354,7 @@
               "size": 1,
               "aggregation": 1,
               "showAnalytics": true,
-              "title": "Sku Score History (0-Not Available, 1-Low, 2-Medium, 3-High)",
+              "title": "Single SKU Score History (0-Not Available, 1-Low, 2-Medium, 3-High)",
               "noDataMessage": "Select a Sku from the list above",
               "timeContextFromParameter": "TimeRange",
               "queryType": 0,
@@ -430,6 +432,123 @@
               }
             },
             "name": "query - 0"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "30ec8557-cf8e-47e6-9a2f-4eb178251ad3",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "ShowMeOnly",
+                  "label": "SKUs w/Percent High of",
+                  "type": 2,
+                  "typeSettings": {
+                    "additionalResourceOptions": [],
+                    "showDefault": false
+                  },
+                  "jsonData": "[\r\n  {\r\n    \"selected\": false,\r\n    \"label\": \"90% or higher\",\r\n    \"value\": 90\r\n  },\r\n  {\r\n    \"selected\": false,\r\n    \"label\": \"85% or higher\",\r\n    \"value\": 85\r\n  },\r\n  {\r\n    \"selected\": false,\r\n    \"label\": \"80% or higher\",\r\n    \"value\": 80\r\n  },\r\n  {\r\n    \"selected\": true,\r\n    \"label\": \"75% or higher\",\r\n    \"value\": 75\r\n  },\r\n  {\r\n    \"selected\": false,\r\n    \"label\": \"70% or higher\",\r\n    \"value\": 70\r\n  },\r\n  {\r\n    \"selected\": false,\r\n    \"label\": \"50% or higher\",\r\n    \"value\": 50\r\n  },\r\n  {\r\n    \"selected\": false,\r\n    \"label\": \"30% or higher\",\r\n    \"value\": 30\r\n  },\r\n  {\r\n    \"selected\": false,\r\n    \"label\": \"All SKUs\",\r\n    \"value\": 1\r\n  }\r\n]",
+                  "timeContext": {
+                    "durationMs": 86400000
+                  },
+                  "value": "50"
+                }
+              ],
+              "style": "above",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 6"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "spot_placement_scores_CL\n| where Region == \"{Region}\" or \"{Region}\" == \"\"\n| where Sku in ({SKUs})\n| summarize TotalCount = count(),HighScoreCount=countif(Score == \"High\") by Sku\n| extend PercentHigh =  round((todouble(HighScoreCount) / TotalCount * 100), 2)\n| project Sku, PercentHigh\n| sort by PercentHigh desc\n| where PercentHigh >= {ShowMeOnly}\n//test\n| project Sku,PercentHigh\n| join (\n  spot_placement_scores_CL\n  | where Region == \"{Region}\" or \"{Region}\" == \"\"\n  | extend ScoreValue = case(Score == \"Low\", 1,Score == \"Medium\", 2, Score == \"High\", 3,0)\n  //| extend RegionAndSku = replace_string(strcat(Region,Sku),\"Standard\",\"\") |\n  // project TimeGenerated, RegionAndSku, ScoreValue\n  | project TimeGenerated, Sku, ScoreValue\n) on Sku\n| project TimeGenerated,Sku = replace_string(strcat(Sku,\" (\",PercentHigh,\")\"),\"Standard_\",\"\"),ScoreValue",
+              "size": 0,
+              "aggregation": 1,
+              "showAnalytics": true,
+              "title": "Multi SKU Score History (0-Not Available, 1-Low, 2-Medium, 3-High)",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "{Workspace}"
+              ],
+              "visualization": "linechart",
+              "tileSettings": {
+                "showBorder": false,
+                "titleContent": {
+                  "columnMatch": "Sku",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "ScoreValue",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "auto"
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                }
+              },
+              "graphSettings": {
+                "type": 0,
+                "topContent": {
+                  "columnMatch": "RegionAndSku",
+                  "formatter": 1
+                },
+                "centerContent": {
+                  "columnMatch": "ScoreValue",
+                  "formatter": 1,
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                }
+              },
+              "chartSettings": {
+                "group": "Sku",
+                "createOtherGroup": 12,
+                "showLegend": true,
+                "showDataPoints": true,
+                "xSettings": {
+                  "dateFormatSettings": {
+                    "formatName": "shortDateTimeNoMsPattern",
+                    "showUtcTime": false
+                  },
+                  "scale": "time"
+                },
+                "ySettings": {
+                  "min": 0,
+                  "max": 3,
+                  "label": ""
+                }
+              },
+              "mapSettings": {
+                "locInfo": "LatLong",
+                "sizeSettings": "ScoreValue",
+                "sizeAggregation": "Sum",
+                "legendMetric": "ScoreValue",
+                "legendAggregation": "Sum",
+                "itemColorSettings": {
+                  "type": "heatmap",
+                  "colorAggregation": "Sum",
+                  "nodeColorField": "ScoreValue",
+                  "heatmapPalette": "greenRed"
+                }
+              }
+            },
+            "name": "query - 0 - Copy"
           }
         ]
       },
@@ -489,7 +608,8 @@
                   "timeContextFromParameter": "TimeRange",
                   "defaultValue": "value::1",
                   "queryType": 0,
-                  "resourceType": "microsoft.operationalinsights/workspaces"
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "value": "High"
                 }
               ],
               "style": "pills",
@@ -719,7 +839,8 @@
                   "jsonData": "[\r\n    {\"value\":\"AppTraces | union AppExceptions\",\"label\":\"Traces and Exceptions\",\"selected\":\"true\"},\r\n    {\"value\":\"AppTraces\",\"label\":\"Traces only \",\"selected\":\"false\"},\r\n    {\"value\":\"AppExceptions\",\"label\":\"Exceptions only\",\"selected\":\"false\"}\r\n]",
                   "timeContext": {
                     "durationMs": 86400000
-                  }
+                  },
+                  "value": "AppExceptions"
                 }
               ],
               "style": "above",
