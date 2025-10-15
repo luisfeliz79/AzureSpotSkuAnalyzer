@@ -1,7 +1,12 @@
 # Spot Placement Score analysis tool
 ### By Luis Feliz
 
-This tool analyzes Azure Spot Placement Scores for virtual machine SKUs across different regions.
+This tool helps visualize Azure Spot Placement Scores for virtual machine SKUs across different regions.
+
+It leverages the [Azure Spot Placement Score API](https://learn.microsoft.com/en-us/azure/virtual-machine-scale-sets/spot-placement-score?tabs=portal) to gather data and present it in an Azure Workbook for easy analysis.
+
+> Note: Spot placement scores serve purely as a recommendation based on certain data points like Spot VM availability. A high placement score doesn't guarantee that the Spot request will be fully or partially fulfilled. Placement Scores are only valid at the time when it's requested. The same Placement Score isn't valid at a different time of the same day or another day. Any similarities are purely coincidental. As such, using this tool for predictive analysis is not recommended.
+
 
 ### See which SKUs score high the most
 ![Azure Spot Placement Score Analysis Tool](./images/high-scoring-skus.png)
@@ -34,3 +39,6 @@ This script deploys the following required resources:
 ## Deployment options
 - [Deploy using Terraform](./deployment/terraform-azure-functions/README.md)
 - [Deploy using CLI](./deployment/CLI/README.md)
+
+
+## For examples on how to use the Spot Placement Score API directly via command line, [see here](./examples/CLI/README.md).

@@ -99,21 +99,20 @@ function SendLogToWorkspace ($logObject,$bearerToken) {
 }
 
 
-function GetSpotPlacementScores([string[]]$SKUs,[string[]]$Regions,$subscription,$RequestRegion) {
+function GetSpotPlacementScores([string[]]$SKUs,[string[]]$Regions,$subscription,$RequestRegion,$InstanceCount=1000) {
 
     $MAX_API_SKU    = 5
-    $INSTANCE_COUNT = 1000
-
+    $INSTANCE_COUNT = $InstanceCount
+    $THROTTLE_GUARD = 1 # After this many requests, pause for 30 seconds to avoid hitting API limits
+    $THROTTLE_GUARD_WAIT = 60 # Wait time in seconds for throttle guard
     if ($null -eq $RequestRegion) {
         $RequestRegion=$Regions[0]
     }
-    
-    # if ($SKUs.Count -gt $MAX_API_SKU) {
-    #     Write-Warning "Received $($SKUs.Count) total"
-    #     Write-Verbose "The API supports up to $MAX_API_SKU SKUs per request. Splitting the requests."    
-    # }
+   
+
 
     $ProcessedSkus=0
+    $ProcessedRequests=0
 
     while ($ProcessedSkus -lt $SKUs.count) {
         $CurrentSkus = $SKUs[$ProcessedSkus..($ProcessedSkus+$MAX_API_SKU-1)]
@@ -143,6 +142,15 @@ function GetSpotPlacementScores([string[]]$SKUs,[string[]]$Regions,$subscription
                     Subscription = $subscription
                 }
             }
+
+            $ProcessedRequests += 1
+            if ($ProcessedRequests -ge $THROTTLE_GUARD) {
+                Write-Warning "Throttling guard: Pausing for $THROTTLE_GUARD_WAIT  seconds to avoid hitting API limits..."
+                Start-Sleep -Seconds $THROTTLE_GUARD_WAIT 
+                $ProcessedRequests = 0
+            }
+
+
         } catch {
             Write-Error "Failed to get spot placement scores: $_"
         }
@@ -195,9 +203,29 @@ if (-not $subscription) {
 # Get the routes from the Route Server
 $StartTime = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
 
+# Do a check on the SKU list, and treat any "96" core machine differently
+if ($SKUs -match "96") {
+    # We have a 96 core SKU, so we need to split the request into two, one for 96 core and one for the rest
+    $SKUs_96 = $SKUs | Where-Object {$_ -match "96"}
+    $SKUs_Other = $SKUs | Where-Object {$_ -notmatch "96"}
 
+    Write-Warning "Detected 96 core SKUs, splitting requests into two."
 
-$PlacementScores=GetSpotPlacementScores -SKUs $SKUs -Regions $regions -subscription $subscription
+    $PlacementScores_96 = GetSpotPlacementScores -SKUs $SKUs_96 -Regions $regions -subscription $subscription -InstanceCount 500
+    $PlacementScores_Other = GetSpotPlacementScores -SKUs $SKUs_Other -Regions $regions -subscription $subscription -InstanceCount 1000
+
+    $PlacementScores = @()
+    if ($PlacementScores_96) {
+        $PlacementScores += $PlacementScores_96
+    }
+    if ($PlacementScores_Other) {
+        $PlacementScores += $PlacementScores_Other
+    }
+
+} else {
+    # Normal request    
+    $PlacementScores=GetSpotPlacementScores -SKUs $SKUs -Regions $regions -subscription $subscription -InstanceCount 1000
+}
 
 
 if ($PlacementScores) {
